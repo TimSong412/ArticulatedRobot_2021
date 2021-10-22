@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 
 class Pos_Calc:
@@ -27,7 +28,7 @@ class Pos_Calc:
         Q = np.array([[cry*crz, srx*sry*crz - crx*srz, srx*srz + crx*sry*crz],
                       [cry*srz, crx*crz + srx*sry*srz, crx*sry*srz - crz*srx],
                       [-sry, cry*srx, crx*cry]])
-    
+
         l_v = np.array([[-self.l4], [0], [0]])
         # res1 = self.Trans.dot(Q.dot(l_v))
         res1 = Q.dot(l_v)
@@ -72,7 +73,6 @@ class Pos_Calc:
 
         theta1 = np.arctan2(dy, dx)
         # theta1 = - np.pi / 2
-        print("t1=", theta1)
 
         c1 = np.cos(theta1)
         s1 = np.sin(theta1)
@@ -84,18 +84,10 @@ class Pos_Calc:
         r = np.sqrt(a**2 + b**2)
         # +- sqrt below
         theta2 = -(np.arctan2(a, b) - np.arctan2(c, np.sqrt(r**2 - c**2)))
-        print("1=", np.arctan2(a, b))
-        print("2=", np.arctan2(c, np.sqrt(r**2 - c**2)))
         # theta2 = - np.pi / 2
-        print("t2=", theta2)
 
         c2 = np.cos(theta2)
         s2 = np.sin(theta2)
-
-        print("dx*c1", dx*c1)
-        print("dy*s1", dy*s1)
-        print("num", dx*c1+dy*s1 - self.l2 * c2)
-        print("deno", self.l1 - self.l2*s2-dz)
 
         theta3 = np.arctan2((dx*c1+dy*s1 - self.l2 *
                              c2), (self.l1 + self.l2*s2-dz)) - theta2
@@ -122,7 +114,7 @@ class Pos_Calc:
                         self.acc)
 
         # R06_new = np.around(self.Trans.dot(R06), self.acc)
-        
+
         # R36 = np.around(R03.T.dot(R06_new), self.acc)
         R36 = np.around(R03.T.dot(R06), self.acc)
 
@@ -136,8 +128,9 @@ class Pos_Calc:
 
         # res = np.array([(theta1 + self.theta1_init) * 180 / np.pi, (theta2 + self.theta2_init) * 180 / np.pi, (theta3 + self.theta3_init) * 180 /
         #                np.pi, (theta4 + self.theta4_init) * 180 / np.pi, (theta5 + self.theta5_init) * 180 / np.pi, (theta6 + self.theta6_init) * 180 / np.pi])
-        res = [(theta1 - self.theta1_init) * 180 / np.pi, (theta2 - self.theta2_init) * 180 / np.pi, (theta3 - self.theta3_init) * 180 /
-               np.pi, (theta4 - self.theta4_init) * 180 / np.pi, (theta5 - self.theta5_init) * 180 / np.pi, (theta6 - self.theta6_init) * 180 / np.pi]
+        res = (theta1 - self.theta1_init) * 180 / np.pi, (theta2 - self.theta2_init) * 180 / np.pi, (theta3 - self.theta3_init) * 180 / \
+            np.pi, (theta4 - self.theta4_init) * 180 / np.pi, (theta5 -
+                                                               self.theta5_init) * 180 / np.pi, (theta6 - self.theta6_init) * 180 / np.pi
         # res = np.array([(theta1) * 180 / np.pi, (theta2) * 180 / np.pi, (theta3) * 180 /
         #                np.pi, (theta4) * 180 / np.pi, (theta5) * 180 / np.pi, (theta6) * 180 / np.pi])
         return res
@@ -186,10 +179,13 @@ def main():
     # arctan2(y, x)
     # cos(rad)
     calculator = Pos_Calc()
-    res = calculator.calc_angle(0.2289, 0.0, 0.509, 3.141592653589793, -1.5707963267948966, 0.0)
-    print(res)
+    st = time.time()
+    print(calculator.calc_angle(0.09245921435921155, 0.03365240191039127,
+          0.6425649235340782, -0.4420150775729468, -0.3463237779149588, -2.068034976781502))
     # print(calculator.calc_pos(20, 20, 20, 20, 20, 20))
     # print(calculator.calc_pos(0, 0, 0, 0, 0, 0))
+    ed = time.time()
+    print("time= ", ed-st)
 
 
 if __name__ == '__main__':

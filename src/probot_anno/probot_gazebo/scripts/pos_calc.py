@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import threading
 
 
 class Pos_Calc:
@@ -126,17 +127,15 @@ class Pos_Calc:
         # theta5 = 0
         theta6 = np.arctan2(R36[2, 1], -R36[2, 0])
 
-        # res = np.array([(theta1 + self.theta1_init) * 180 / np.pi, (theta2 + self.theta2_init) * 180 / np.pi, (theta3 + self.theta3_init) * 180 /
-        #                np.pi, (theta4 + self.theta4_init) * 180 / np.pi, (theta5 + self.theta5_init) * 180 / np.pi, (theta6 + self.theta6_init) * 180 / np.pi])
         res = (theta1 - self.theta1_init) * 180 / np.pi, (theta2 - self.theta2_init) * 180 / np.pi, (theta3 - self.theta3_init) * 180 / \
             np.pi, (theta4 - self.theta4_init) * 180 / np.pi, (theta5 -
                                                                self.theta5_init) * 180 / np.pi, (theta6 - self.theta6_init) * 180 / np.pi
-        # res = np.array([(theta1) * 180 / np.pi, (theta2) * 180 / np.pi, (theta3) * 180 /
-        #                np.pi, (theta4) * 180 / np.pi, (theta5) * 180 / np.pi, (theta6) * 180 / np.pi])
+
         return res
 
     # input: deg
     def calc_pos(self, theta1, theta2, theta3, theta4, theta5, theta6):
+        st = time.time()
         c1 = np.cos(theta1*np.pi/180+self.theta1_init)
         s1 = np.sin(theta1*np.pi/180+self.theta1_init)
         c2 = np.cos(theta2*np.pi/180+self.theta2_init)
@@ -149,29 +148,37 @@ class Pos_Calc:
         s5 = np.sin(theta5*np.pi/180+self.theta5_init)
         c6 = np.cos(theta6*np.pi/180+self.theta6_init)
         s6 = np.sin(theta6*np.pi/180+self.theta6_init)
-
+        # ed = time.time()
         # print("c1= ", c1, " c2= ", c2, " c3= ", c3)
         # print("s1= ", s1, " s2= ", s2, " s3= ", s3)
+        # st = time.time()
+        # T03 = np.array([
+        #     [c1*c2*c3 - c1*s2*s3, s1, c1*c2*s3+c1*s2*c3, self.l2*c1*c2],
+        #     [s1*c2*c3 - s1*s2*s3, -c1, s1*c2*s3+s1*s2*c3, self.l2*c2*s1],
+        #     [s2*c3+s3*c2, 0, s2*s3-c2*c3, self.l2*s2+self.l1],
+        #     [0, 0, 0, 1]])
 
-        T03 = np.around(np.array([
-            [c1*c2*c3 - c1*s2*s3, s1, c1*c2*s3+c1*s2*c3, self.l2*c1*c2],
-            [s1*c2*c3 - s1*s2*s3, -c1, s1*c2*s3+s1*s2*c3, self.l2*c2*s1],
-            [s2*c3+s3*c2, 0, s2*s3-c2*c3, self.l2*s2+self.l1],
-            [0, 0, 0, 1]]),
-            self.acc)
+        # # ed = time.time()
+        # T36 = np.array([
+        #     [c4*c5*c6 - s4*s6, -c6*s4 - c4*c5*s6, c4*s5, self.l4*c4*s5],
+        #     [c4*s6 + c5*c6*s4, c4*c6 - c5*s4*s6, s4*s5, self.l4*s4*s5],
+        #     [-c6*s5, s5*s6, c5, self.l3+self.l4*c5],
+        #     [0, 0, 0, 1]])
 
-        T36 = np.around(np.array([
-            [c4*c5*c6 - s4*s6, -c6*s4 - c4*c5*s6, c4*s5, self.l4*c4*s5],
-            [c4*s6 + c5*c6*s4, c4*c6 - c5*s4*s6, s4*s5, self.l4*s4*s5],
-            [-c6*s5, s5*s6, c5, self.l3+self.l4*c5],
-            [0, 0, 0, 1]]),
-            self.acc)
-
-        T06 = np.around(T03.dot(T36), self.acc)
-        print("T06= ")
-        print(T06)
+        # T06 = np.around(T03.dot(T36), self.acc)
+        T06 = np.array([[s1*(c4*s6 + c5*c6*s4) - (s4*s6 - c4*c5*c6)*(c1*c2*c3 - c1*s2*s3) - c6*s5*(c1*c2*s3 + c1*c3*s2), s1*(c4*c6 - c5*s4*s6) - (c6*s4 + c4*c5*s6)*(c1*c2*c3 - c1*s2*s3) + s5*s6*(c1*c2*s3 + c1*c3*s2), c5*(c1*c2*s3 + c1*c3*s2) + s1*s4*s5 + c4*s5*(c1*c2*c3 - c1*s2*s3), (c1*c2*s3 + c1*c3*s2)*(self.l3 + c5*self.l4) + c1*c2*self.l2 + self.l4*s1*s4*s5 + c4*self.l4*s5*(c1*c2*c3 - c1*s2*s3)],
+                        [- (s4*s6 - c4*c5*c6)*(c2*c3*s1 - s1*s2*s3) - c1*(c4*s6 + c5*c6*s4) - c6*s5*(c2*s1*s3 + c3*s1*s2), s5*s6*(c2*s1*s3 + c3*s1*s2) - c1*(c4*c6 - c5*s4*s6) - (c6*s4 + c4*c5*s6)*(c2*c3*s1 - s1*s2*s3),
+                            c5*(c2*s1*s3 + c3*s1*s2) - c1*s4*s5 + c4*s5*(c2*c3*s1 - s1*s2*s3), (c2*s1*s3 + c3*s1*s2)*(self.l3 + c5*self.l4) + c2*self.l2*s1 - c1*self.l4*s4*s5 + c4*self.l4*s5*(c2*c3*s1 - s1*s2*s3)],
+                        [c6*s5*(c2*c3 - s2*s3) - (s4*s6 - c4*c5*c6)*(c2*s3 + c3*s2),                                   - (c6*s4 + c4*c5*s6)*(c2*s3 + c3*s2) - s5*s6*(c2*c3 - s2*s3),
+                         c4*s5*(c2*s3 + c3*s2) - c5*(c2*c3 - s2*s3),                         self.l1 - (c2*c3 - s2*s3)*(self.l3 + c5*self.l4) + self.l2*s2 + c4*self.l4*s5*(c2*s3 + c3*s2)],
+                        [0,                                                                                              0,                                                                 0,                                                                                            1]])
+        ed = time.time()
+        print("ptime= ", ed-st)
+        st = time.time()
         a, b, c = self.ret_rxryrz(T06[0:3, 0:3])
         dx, dy, dz = self.ret_xyz(T06[0:3, 3])
+        ed = time.time()
+        print("etime= ", ed-st)
         return dx, dy, dz, a, b, c
 
 
@@ -180,13 +187,55 @@ def main():
     # cos(rad)
     calculator = Pos_Calc()
     st = time.time()
-    print(calculator.calc_angle(0.09245921435921155, 0.03365240191039127,
-          0.6425649235340782, -0.4420150775729468, -0.3463237779149588, -2.068034976781502))
-    # print(calculator.calc_pos(20, 20, 20, 20, 20, 20))
+    res = calculator.calc_angle(0.28, -0.24, 0.08, 0, 0, 0)
+    # res = calculator.calc_pos(0.0, -49.62886723910115, 15.101453644190375, 0, 0, 0)
     # print(calculator.calc_pos(0, 0, 0, 0, 0, 0))
     ed = time.time()
+    print(res)
     print("time= ", ed-st)
+
+
+class T1(threading.Thread):
+    global c1, c2, c3, c4, c5, c6, s1, s2, s3, s4, s5, s6, res1
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        pass
+
+    def run(self):
+        res1 = np.around(s1*(c4*s6 + c5*c6*s4) - (s4*s6 - c4*c5*c6) *
+                         (c1*c2*c3 - c1*s2*s3) - c6*s5*(c1*c2*s3 + c1*c3*s2), 15)
+        print(res1)
 
 
 if __name__ == '__main__':
     main()
+    # t1 = T1()
+    # theta1 = 30
+    # theta2 = 40
+    # theta3 = 50
+    # theta4 = 60
+    # theta5 = 70
+    # theta6 = 80
+    # st = time.time()
+    # c1 = np.cos(theta1*np.pi/180)
+    # s1 = np.sin(theta1*np.pi/180)
+    # c2 = np.cos(theta2*np.pi/180)
+    # s2 = np.sin(theta2*np.pi/180)
+    # c3 = np.cos(theta3*np.pi/180)
+    # s3 = np.sin(theta3*np.pi/180)
+    # c4 = np.cos(theta4*np.pi/180)
+    # s4 = np.sin(theta4*np.pi/180)
+    # c5 = np.cos(theta5*np.pi/180)
+    # s5 = np.sin(theta5*np.pi/180)
+    # c6 = np.cos(theta6*np.pi/180)
+    # st = time.time()
+    # s6 = np.sin(theta6*np.pi/180)
+    # ed = time.time()
+    # st = time.time()
+    # res1 = 0
+    # t1.start()
+    # t1.join()
+    # ed = time.time()
+    # print("res= ", res1)
+    # print("time= ", ed-st)

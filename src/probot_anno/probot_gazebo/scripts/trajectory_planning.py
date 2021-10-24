@@ -15,12 +15,12 @@ class trajectory_planner:
         # About joints max_speed and max_acc
         self.max_speed = [0.7854, 0.6981, 0.7854, 0.9599, 0.9599, 0.9599]
         self.max_acc = [0.3491, 0.2618, 0.3491, 0.4363, 0.4363, 0.4363]
-        self.p1 = self.cal_parameter(0)
-        self.p2 = self.cal_parameter(1)
-        self.p3 = self.cal_parameter(2)
-        self.p4 = self.cal_parameter(3)
-        self.p5 = self.cal_parameter(4)
-        self.p6 = self.cal_parameter(5)
+        self.p1 = 0.0
+        self.p2 = 0.0
+        self.p3 = 0.0
+        self.p4 = 0.0
+        self.p5 = 0.0
+        self.p6 = 0.0
         self.p = [self.p1, self.p2, self.p3, self.p4, self.p5, self.p6]
 
     def set_init_end(self, theta0, theta1):
@@ -67,7 +67,7 @@ class trajectory_planner:
 
         parameter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        if abs(t1*max_acc) > max_speed:
+        if abs(t1*max_acc) > abs(max_speed):
             print("Joint %d out of speed range", joint_num)
         else:
             # function segment 1

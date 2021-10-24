@@ -8,7 +8,6 @@ vel_pub = rospy.Publisher(
     '/probot_anno/arm_pos_controller/command', Float64MultiArray, queue_size=10)
 rospy.init_node('POScontroller_py', anonymous=True)
 zero = [0, 0, 0, 0, 0, 0]
-# p = [-20.000000000000014, 24.664197194270606, -66.97750144851543, -14.281670103895822, 103.06225558932488, 70.1236007288458]
 p = [20, 20, 20, 20, 20, 20]
 # p = [-45, 60, -45, 60, -45, 60]
 rad = [i*np.pi / 180.0 for i in p]
